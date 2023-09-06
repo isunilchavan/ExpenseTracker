@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm"
+        crossorigin="anonymous"></script>
+
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="mt-5 mb-4">Expense Tracker</h1>
+        <div class="row">
+            <div class="col-md-6">
+                <form id="expense-form">
+                    <div class="mb-3">
+                        <label for="expense-name" class="form-label">Expense Name</label>
+                        <input type="text" class="form-control" id="expense-name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="expense-amount" class="form-label">Expense Amount</label>
+                        <input type="number" class="form-control" id="expense-amount" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Expense</button>
+                    <button type="button" class="btn btn-warning" id="edit-button" style="display: none;">Edit
+                        Expense</button>
+                    <button type="button" class="btn btn-danger" id="delete-button" style="display: none;">Delete
+                        Expense</button>
+                    <input type="hidden" id="expense-id">
+                </form>
+            </div>
+            <div class="col-md-6">
+                <h2 class="mb-3">Expense List</h2>
+                <ul id="expense-list" class="list-group">
+                </ul>
+            </div>
+        </div>
+    </div>
+    <script>
+
+        // Function to add an expense
+        function addExpense(name, amount) {
+            const expense = {
+                id: Date.now(),
+                name: name,
+                amount: amount,
+            };
+
+            let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+            expenses.push(expense);
+            localStorage.setItem('expenses', JSON.stringify(expenses));
+        }
+
+        // Function to display expenses
+        function displayExpenses() {
+            const expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+
+            const expenseList = document.getElementById('expense-list');
+            expenseList.innerHTML = '';
+
+            expenses.forEach((expense) => {
+                const listItem = document.createElement('li');
+                listItem.className = 'list-group-item';
+                listItem.innerHTML = `<strong>${expense.name}:</strong> $${expense.amount}
+      <button class="btn btn-info btn-sm float-right edit-button">Edit</button>
+      <button class="btn btn-danger btn-sm float-right delete-button">Delete</button>`;
+
+                listItem.querySelector('.edit-button').addEventListener('click', () => editExpense(expense.id));
+                listItem.querySelector('.delete-button').addEventListener('click', () => deleteExpense(expense.id));
+
+                expenseList.appendChild(listItem);
+            });
+        }
+
+        // Function to edit an expense
+        function editExpense(id) {
+            const expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+            const expense = expenses.find((item) => item.id == id);
+
+            if (expense) {
+                document.getElementById('expense-name').value = expense.name;
+                document.getElementById('expense-amount').value = expense.amount;
+                document.getElementById('expense-id').value = expense.id;
+            }
+        }
+
+        // Function to update an expense
+        function updateExpense(id, name, amount) {
+            const expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+            const index = expenses.findIndex((item) => item.id == id);
+
+            if (index !== -1) {
+                expenses[index].name = name;
+                expenses[index].amount = amount;
+                localStorage.setItem('expenses', JSON.stringify(expenses));
+            }
+
+            document.getElementById('edit-button').style.display = 'none';
+            document.getElementById('delete-button').style.display = 'none';
+            document.getElementById('expense-id').value = '';
+            document.getElementById('expense-form').reset();
+            displayExpenses();
+        }
+
+        // Function to delete an expense
+        function deleteExpense(id) {
+            const expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+            const filteredExpenses = expenses.filter((item) => item.id != id);
+            localStorage.setItem('expenses', JSON.stringify(filteredExpenses));
+            displayExpenses();
+        }
+
+        // Event listeners
+        document.getElementById('expense-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('expense-name').value;
+            const amount = document.getElementById('expense-amount').value;
+            const id = document.getElementById('expense-id').value;
+
+            if (id) {
+                updateExpense(id, name, amount);
+            } else {
+                addExpense(name, amount);
+            }
+
+            document.getElementById('expense-form').reset();
+            displayExpenses();
+        });
+
+        displayExpenses();
+
+    </script>
+</body>
+</html>
