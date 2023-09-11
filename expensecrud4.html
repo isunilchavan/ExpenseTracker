@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm"
+        crossorigin="anonymous"></script>
+
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="mt-5 mb-4">Expense Tracker</h1>
+        <div class="row">
+            <div class="col-md-6">
+                <form id="expense-form">
+                    <div class="mb-3">
+                        <label for="expense-name" class="form-label">Expense Name</label>
+                        <input type="text" class="form-control" id="expense-name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="expense-amount" class="form-label">Expense Amount</label>
+                        <input type="number" class="form-control" id="expense-amount" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Expense</button>
+                    <button type="button" class="btn btn-warning" id="edit-button" style="display: none;">Edit
+                        Expense</button>
+                    <button type="button" class="btn btn-danger" id="delete-button" style="display: none;">Delete
+                        Expense</button>
+                    <input type="hidden" id="expense-id">
+                </form>
+            </div>
+            <div class="col-md-6">
+                <h2 class="mb-3">Expense List</h2>
+                <ul id="expense-list" class="list-group">
+                </ul>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.5.0/axios.min.js"></script>
+    <script>
+
+        //Function to add an expense
+        function addExpense(name, amount) {
+            const expense = {
+                name: name,
+                amount: amount,
+            };
+            axios
+                .post("https://crudcrud.com/api/a975d591d74a45d7a9cb84437811d204/expenseData", expense)
+                .then((response) => {
+                    console.log(response)
+                    displayExpenses();
+                })
+                .catch((err) => {
+                    document.body.innerHTML = document.body.innerHTML + "<h3> Something went wrong</h3>"
+                    console.log(err)
+                })
+        }
+
+        // Function to display expenses
+        function displayExpenses() {
+            axios
+                .get("https://crudcrud.com/api/a975d591d74a45d7a9cb84437811d204/expenseData")
+                .then((response) => {
+                    const expenses = response.data;
+                    const expenseList = document.getElementById('expense-list');
+                    expenseList.innerHTML = '';
+
+                    expenses.forEach((expense) => {
+                        const listItem = document.createElement('li');
+                        listItem.className = 'list-group-item';
+                        listItem.innerHTML = `<strong>${expense.name}:</strong> $${expense.amount},
+                        <button class="btn btn-info btn-sm float-right edit-button">Edit</button>
+                        <button class="btn btn-danger btn-sm float-right delete-button"> Delete </button>`;
+                        listItem.setAttribute('data-id', expense._id); // Set data-id attribute to match the expense ID
+
+                        listItem.querySelector('.edit-button').addEventListener('click', () => editExpense(expense._id));
+                        listItem.querySelector('.delete-button').addEventListener('click', () => deleteExpense(expense._id));
+
+                        expenseList.appendChild(listItem);
+                    });
+                })
+                .catch((err) => {
+                    console.error(err);
+                });
+        }
+
+       
+
+
+            // Function to update an expense
+            function editExpense(id) {
+                axios
+                    .get(`https://crudcrud.com/api/a975d591d74a45d7a9cb84437811d204/expenseData/${id}`)
+                    .then((response) => {
+                        const expense = response.data;
+                        // Populate the form fields with the user's data for editing
+                        document.getElementById('expense-name').value = expense.name;
+                        document.getElementById('expense-amount').value = expense.amount;
+                        document.getElementById('expense-id').value = expense._id;
+                        // Show the edit button (assuming you have an edit button in your form)
+                        document.getElementById('edit-button').style.display = 'block';
+                        addExpense(name, amount, expense);
+                    })
+                    .catch((err) => {
+                        console.error(err);
+                    });
+            }
+        //    updateExpense function
+            function updateExpense(id, name, amount) {
+                const expense = {
+                    name: name,
+                    amount:amount,
+                };
+
+                axios
+                    .put(`https://crudcrud.com/api/a975d591d74a45d7a9cb84437811d204/expenseData/${id}`, expense)
+                    .then((response) => {
+                        console.log(response);
+                        // Clear the form
+                        document.getElementById('expense-name').value = '';
+                        document.getElementById('expense-amount').value = '';
+                        document.getElementById('expense-id').value = '';
+                        // Hide the edit button
+                        document.getElementById('edit-button').style.display = 'none';
+                        // Refresh the displayed user details
+                        displayExpenses();
+                    })
+                    .catch((err) => {
+                        console.error(err);
+                    });
+            }
+            // // Event listener for form submission
+            document.getElementById('expense-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const name = document.getElementById('expense-name').value;
+                const email = document.getElementById('expense-amount').value;
+                const id = document.getElementById('expense-id').value;
+
+                if (id) {
+                    // If an ID is present, it's an edit operation
+                    updateExpense(name, amount);
+                } else {
+                    // Otherwise, it's a new user detail to be added
+                    addExpense(name, amount);
+                }
+            });
+
+
+            // Function to delete an expense
+            function deleteExpense(id) {
+                // Delete the expense from CRUD.
+                axios
+                    .delete(`https://crudcrud.com/api/a975d591d74a45d7a9cb84437811d204/expenseData/${id}`)
+                    .then((response) => {
+                        console.log(response);
+                    })
+                    .catch((err) => {
+                        console.error(err);
+                    });
+
+                // Delete the expense from the screen.
+                const expenseList = document.getElementById("expense-list");
+                const expenseItem = expenseList.querySelector(`li[data-id="${id}"]`);
+                expenseList.removeChild(expenseItem);
+            }
+
+            // Event listeners
+            document.getElementById('expense-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const name = document.getElementById('expense-name').value;
+                const amount = document.getElementById('expense-amount').value;
+                const id = document.getElementById('expense-id').value;
+
+                if (id) {
+                    updateExpense(id, name, amount);
+                } else {
+                    addExpense(name, amount);
+                }
+
+                document.getElementById('expense-form').reset();
+                displayExpenses();
+            });
+
+            displayExpenses();
+
+    </script>
+</body>
+
+</html>
