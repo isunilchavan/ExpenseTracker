@@ -137,23 +137,6 @@
                         console.error(err);
                     });
             }
-            // // Event listener for form submission
-            document.getElementById('expense-form').addEventListener('submit', (e) => {
-                e.preventDefault();
-                const name = document.getElementById('expense-name').value;
-                const amount = document.getElementById('expense-amount').value;
-                const id = document.getElementById('expense-id').value;
-
-                if (id) {
-                    // If an ID is present, it's an edit operation
-                    updateExpense(name, amount);
-                } else {
-                    // Otherwise, it's a new user detail to be added
-                    addExpense(name, amount);
-                }
-            });
-
-
             // Function to delete an expense
             function deleteExpense(id) {
                 // Delete the expense from CRUD.
@@ -180,8 +163,10 @@
                 const id = document.getElementById('expense-id').value;
 
                 if (id) {
+                      // If an ID is present, it's an edit operation
                     updateExpense(id, name, amount);
                 } else {
+                     // Otherwise, it's a new user detail to be added
                     addExpense(name, amount);
                 }
 
